@@ -1,0 +1,317 @@
+<%- include("../partials/adminHeader") %>
+
+    <section class="content-main">
+        <div class="row">
+            <div class="col-9">
+                <div class="content-header">
+                    <h2 class="content-title">Add New Product</h2>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-body">
+
+                        <form method="post" action="/admin/addProducts" enctype="multipart/form-data"
+                            onsubmit="return validateForm()">
+                            <div class="mb-4">
+                                <label for="product_name" class="form-label">Product Name</label>
+                                <input type="text" placeholder="Type here" name="productName"
+                                    class="form-control border" id="product_name">
+                                <div id="productName-error" class="error-message"></div>
+                            </div>
+                            <div class="col-lg-4 mb-4">
+                                <label class="form-label">Brand</label>
+                                <select class="form-select border" name="brand">
+                                    <% for (let i=0; i < brand.length; i++) { %>
+                                        <option value="<%=brand[i].brandName %>">
+                                            <%= brand[i].brandName %>
+                                        </option>
+                                        <% } %>
+                                </select>
+                                <div id="brand-error" class="error-message"></div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Full description</label>
+                                <textarea placeholder="Type here" id="descriptionid" name="description" class="form-control border"
+                                    rows="4"></textarea>
+                                <div id="description-error" class="error-message"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Regular price</label>
+                                        <input placeholder="$" name="regularPrice" type="text"
+                                            class="form-control border">
+                                            <div id="regularPrice-error" class="error-message"></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Sale price</label>
+                                        <input placeholder="$" name="salePrice" type="text" class="form-control border">
+                                        
+                                    </div>
+                                    <div id="salePrice-error" class="error-message"></div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Quantity</label>
+                                        <input placeholder="" name="quantity" type="text" class="form-control border">
+                                        <div id="quantity-error" class="error-message"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                
+                                <div class="col-lg-4">
+                                    <div class="mb-4">
+                                        <label class="form-label">Color</label>
+                                        <input placeholder="$" name="color" type="text" class="form-control border"> 
+                                    </div>
+                                    <div id="color-error" class="error-message"></div>
+                                </div>
+                              
+                            </div>
+                            <div class="card mb-4">
+                                <div class="card-body">
+                                    <div class="row gx-2">
+                                        <div class="col-sm-6 mb-3">
+                                            <label class="form-label">Category</label>
+                                            <select class="form-select border" style="width: 150px;" name="category">
+                                                <% for (let i=0; i < cat.length; i++) { %>
+                                                    <option value="<%= cat[i].name %>">
+                                                        <%= cat[i].name %>
+                                                    </option>
+                                                   
+                                                    <% } %>
+                                            </select>
+                                            <div id="category-error" class="error-message"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mb-2">
+                                <div class="card-header">
+                                    <h4>Choose images</h4>
+                                </div>
+                                <div class="border row">
+                                    <div id="addedImagesContainer" class="thumbnails-container"></div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-upload">
+                                        <!-- <img src="assets/imgs/theme/upload.svg" alt=""> -->
+                                        <input class="form-control border" name="images" id="imageInput" type="file"
+                                            multiple>
+                                            <div id="images-error" class="error-message"></div>
+                                    </div>
+                                    
+                                    
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-md rounded font-sm hover-up" type="submit">Publish</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add an empty container div for displaying image thumbnails -->
+    <style>
+        .thumbnails-container {
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .thumbnail {
+            margin-right: 10px;
+            /* Adjust margin as needed for spacing between thumbnails */
+        }
+    </style>
+
+    <script>
+        // Array to store selected images
+        const selectedImages = [];
+
+        // Function to handle file input change
+        document.getElementById("imageInput").addEventListener("change", handleFileSelect);
+
+        function handleFileSelect(event) {
+            // Target the container for displaying thumbnails
+            const addedImagesContainer = document.getElementById("addedImagesContainer");
+
+            // Clear previous content
+            addedImagesContainer.innerHTML = "";
+
+            const files = event.target.files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                // Add the file to the selected images array
+                selectedImages.push(file);
+
+                // Create thumbnail element
+                const thumbnail = document.createElement("div");
+                thumbnail.classList.add("thumbnail");
+
+                // Create image element
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.alt = "thumbnail";
+
+                // Set a fixed width for the image
+                img.style.width = "50px"; // Adjust the width as needed
+                img.style.height = "auto";
+
+                // Create remove icon
+                const removeIcon = document.createElement("span");
+                removeIcon.classList.add("remove-icon");
+                removeIcon.innerHTML = "&times;"; // Multiplication symbol as a cross
+
+                // Event listener to remove the image on icon click
+                removeIcon.addEventListener("click", function () {
+                    // Remove the file from the selected images array
+                    const index = selectedImages.indexOf(file);
+                    if (index !== -1) {
+                        selectedImages.splice(index, 1);
+                    }
+
+                    // Remove the thumbnail from the container
+                    thumbnail.remove();
+                });
+
+                // Append elements to thumbnail
+                thumbnail.appendChild(img);
+                thumbnail.appendChild(removeIcon);
+
+                // Append thumbnail to the container
+                addedImagesContainer.appendChild(thumbnail);
+            }
+        }
+
+        function validateForm() {
+            console.log("validate form");
+            clearErrorMessages();
+            const name = document.getElementsByName('productName')[0].value;
+            const description = document.getElementById('descriptionid').value;
+            const brand = document.getElementsByName('brand')[0].value;
+            const price = document.getElementsByName('regularPrice')[0].value;
+            const saleprice = document.getElementsByName('salePrice')[0].value;
+            const color = document.getElementsByName('color')[0].value;
+            const category = document.getElementsByName('category')[0].value;
+            const images = document.getElementById('imageInput')
+            const quantity=document.getElementsByName('quantity')
+            console.log(images,"imag");
+            console.log("description",description);
+            console.log(brand,"brand");
+            console.log(price,"price");
+            console.log(color,"color");
+            console.log(category,"category");
+            console.log(images.files.length,"imagcdrfvtg");
+            console.log(saleprice,"saleprice");
+
+            
+
+
+            let isValid = true
+      
+            if (name.trim() === "") {
+                displayErrorMessage('productName', 'Please enter a product name.');
+                isValid = false;
+            }
+            
+            
+            if (description.trim() === '') {
+                displayErrorMessage('description', 'Please enter a product description.');
+                isValid = false;
+            }
+
+           
+
+            if ( parseInt(quantity) < 0) {
+                displayErrorMessage('quantity', 'Please enter a valid non-negative quantity.');
+                isValid = false;
+            }
+
+
+            if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
+                displayErrorMessage('regularPrice', 'Please enter a valid non-negative price.');
+                isValid = false;
+            }
+
+
+            if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
+                displayErrorMessage('salePrice', 'Please enter a valid non-negative price.');
+                isValid = false;
+            }
+            
+            if (color.trim() === "") {
+                displayErrorMessage('color', 'Please enter a color.');
+                isValid = false;
+            }
+
+
+            if (images.files.length === 0) {
+                console.log("working pannale");
+                displayErrorMessage("images",'Please select an image.');
+                isValid = false;
+            }
+           
+
+            const imageFile = images.files;
+
+            // console.log(imageFile[0].type,"itsimg");
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            const maxSizeMB = 5; // Maximum file size in megabytes
+
+            // Check file type
+            if(images.files.length != 0){
+                if (!allowedTypes.includes(imageFile[0].type)) {
+                console.log();
+                displayErrorMessage ("images",'Invalid file type. Please select a JPEG, PNG, or GIF image.');
+                isValid = false;
+            }
+
+            }
+           
+
+            // Check file size
+            if(images.files.length != 0){
+            if (imageFile[0].size > maxSizeMB * 1024 * 1024) {
+                displayErrorMessage ("images",`File size exceeds ${maxSizeMB} MB. Please choose a smaller image.`); 
+                isValid = false;
+            }
+        }
+
+            // If all checks pass, clear error message
+           
+            if (!isValid) {
+                // If there are validation errors, prevent form submission
+                return false;
+            }
+            // displayErrorMessage '';
+            return isValid;
+        }
+        function displayErrorMessage(field, message) {
+            const errorElement = document.getElementById(`${field}-error`);
+            if (errorElement) {
+                errorElement.innerText = message;
+            }
+        }
+        function clearErrorMessages() {
+            const errorElements = document.getElementsByClassName('error-message');
+            Array.from(errorElements).forEach(element => {
+                element.innerText = '';
+            });
+            const errorMessage = document.getElementById('errorMessage');
+
+        }
+ 
+
+    </script>
+
+    <%- include("../partials/adminFooter") %>
