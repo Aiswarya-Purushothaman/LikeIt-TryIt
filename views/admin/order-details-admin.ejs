@@ -1,12 +1,4 @@
 <%- include("../partials/adminHeader") %>
-
-
-
-
-
-
-
-
     <main class="container">
        
         <section class="content-main">
@@ -36,10 +28,16 @@
                             <% if (orders.status !== "Canceled") { %>
                                 <% if (orders.status === "Delivered") { %>
                                     <h4 class="text-success">Delivered</h4>
+                                <% } else if (orders.status === "Return Request") { %>
+                                    <select id="actionDropdown" class="form-select form-select-sm d-inline-block mb-lg-0 mb-15 mw-100" onchange="handleDropdownChange(this,'<%=orders.userId%>')">
+                                        <option value="status">Status</option>
+                                        <!-- <option value="Shipped">Shipped</option> -->
+                                        <option value="Returned">Returned</option>
+                                    </select>
                                 <% } else if (orders.status === "Returned") { %>
                                     <h4 class="text-warning">Returned</h4>
                                 <% } else { %>
-                                    <select id="actionDropdown" class="form-select form-select-sm d-inline-block mb-lg-0 mb-15 mw-100" onchange="handleDropdownChange(this)">
+                                    <select id="actionDropdown" class="form-select form-select-sm d-inline-block mb-lg-0 mb-15 mw-100" onchange="handleDropdownChange(this,'<%=orders.userId%>')">
                                         <option value="status">Status</option>
                                         <option value="Shipped">Shipped</option>
                                         <option value="Delivered">Delivered</option>
@@ -80,27 +78,27 @@
                                 <div class="text">
                                     <h6 class="mb-1">Order info</h6>
                                     <p class="mb-1">
-                                        <%if(locals.orders){%>
-                                        Pay method: <%=orders.payment%> <br> Status:
-                                        <% if (orders.status === "Pending") { %> 
-                                          Pending
-                                      <% } else if (orders.status === "Delivered") { %>
-                                          Delivered
-                                      <% } else if (orders.status === "Confirmed") { %>
-                                          Confirmed
-                                      <% } else if (orders.status === "Returned") { %>
-                                          Returned
-                                      <% } else if (orders.status === "Canceled") { %>
-                                          Cancelled
-                                      <% } if (orders.status === "Shipped") { %> <!-- Corrected line -->
-                                          Shipped
-                                      <% } else { %> <!-- Added an else block -->
-                                          Unknown Status
-                                      <% } %>
-                                                    <% } %>
-
+                                        <% if (locals.orders) { %>
+                                            Pay method: <%= orders.payment %> <br> Status:
+                                            <% if (orders.status === "Failed") { %>
+                                                Failed
+                                            <% } else if (orders.status === "Delivered") { %>
+                                                Delivered
+                                            <% } else if (orders.status === "Confirmed") { %>
+                                                Confirmed
+                                            <% } else if (orders.status === "Returned") { %>
+                                                Returned
+                                            <% } else if (orders.status === "Canceled") { %>
+                                                Cancelled
+                                            <% } else if (orders.status === "Shipped") { %>
+                                                Shipped
+                                            <% } else if (orders.status === "Return Request") { %> <!-- Added this block -->
+                                                Return Request
+                                            <% } else { %>
+                                                Unknown Status
+                                            <% } %>
+                                        <% } %>
                                     </p>
-                                    
                                 </div>
                             </article>
                         </div> <!-- col// -->
@@ -124,6 +122,7 @@
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead>
+                                        
                                         <tr class="text-center">
                                             <th>Product</th>
                                             <th>Name</th>
@@ -139,7 +138,7 @@
                                                 <tr>
                                                     <td class="text-center"> 
                                                            
-                                                                <img src="/uploads/product-images/<%= orders.product[i].image %>" style="height: 7rem; width: 7rem;" class="img-xs" alt="Item">
+                                                                <img src="/uploads/re-image/<%= orders.product[i].image %>" style="height: 7rem; width: 7rem;" class="img-xs" alt="Item">
                                                 
                                                     </td>
                                                     <td class="text-center"> 
@@ -242,24 +241,24 @@
   
  
   <script>
-    function handleDropdownChange(selectElement) {
-       
-        console.log(orderId.value,"hiiiiiiiiiiiiiiiiiiiii");
-        var selectedValue = selectElement.value;
-        console.log(selectedValue);
-        if(selectedValue == "cancel"){
-            window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
-        }else if(selectedValue == "Shipped"){
-            window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
-        }else if(selectedValue == "Delivered"){
-            window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
-        }else{
-            alert("error")
-        }
-
-
-    }
-
+ function handleDropdownChange(selectElement, userId) {
+  console.log(selectElement.value);
+  console.log(orderId.value, "hiiiiiiiiiiiiiiiiiiiii");
+  var selectedValue = selectElement.value;
+  console.log(selectedValue);
+  if (selectedValue == "cancel") {
+    window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
+  } else if (selectedValue == "Shipped") {
+    window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
+  } else if (selectedValue == "Delivered") {
+    window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}`;
+  } else if (selectedValue == "Returned") {
+    console.log("hello boss");
+    window.location.href = `http://localhost:5000/admin/changeStatus?orderId=${orderId.value}&status=${selectedValue}&userId=${userId}`;
+  } else {
+    alert("error")
+  }
+}
     function performAction() {
         // This function can be used for additional actions when the "Save" button is clicked
         // You can add more logic here if needed

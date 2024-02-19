@@ -7,8 +7,12 @@ const categoryController = require("../controllers/categoryController")
 const productController = require("../controllers/productController")
 const brandController = require("../controllers/brandController")
 const orderContoller=require("../controllers/orderController")
+const bannerController=require('../controllers/bannerController')
+
 
 const { isAdmin } = require("../Authentication/auth")  
+
+Router.get("/pageerror", adminController.pageNotFound1)
 
 // Multer Settings
 const multer = require("multer")
@@ -39,7 +43,7 @@ Router.post("/removeCategoryOffer", isAdmin, categoryController.removerCategoryO
 
 //Product Management
 Router.get("/addProducts", isAdmin, productController.getProductAddPage)
-Router.post("/addProducts", isAdmin, upload.array("images", 5), productController.addProducts)
+Router.post("/addProductsm", isAdmin, upload.array("images", 5), productController.addProducts)
 Router.get("/products", isAdmin, productController.getAllProducts)
 Router.get("/editProduct", isAdmin, productController.getEditProduct)
 Router.post("/editProduct/:id", isAdmin, upload.array("images", 5), productController.editProduct)
@@ -64,6 +68,16 @@ Router.get("/blockBrand", isAdmin, brandController.blockBrand)
 Router.get("/unBlockBrand", isAdmin, brandController.unBlockBrand)
 Router.get("/deletebrand",isAdmin,brandController.deletebrand)
 
+// Banner Management
+Router.get("/banner", isAdmin, bannerController.bannerManagement)
+Router.get("/addBanner", isAdmin, bannerController.getAddBannerPage)
+Router.post("/addBanner", isAdmin,upload.single("images"), bannerController.postAddBanner)
+Router.get("/editBanner", isAdmin, bannerController.getEditBannerPage)
+Router.post("/editBanner", isAdmin,upload.single("images"), bannerController.postEditBanner)
+Router.get("/deleteBanner", isAdmin, bannerController.deleteBanner)
+Router.post("/deletebannerImage",isAdmin,bannerController.deletebannerImage)
+
+
 
 // Order Management
 Router.get("/orderList", isAdmin, orderContoller.getOrderListPageAdmin)
@@ -73,6 +87,9 @@ Router.get("/changeStatus", isAdmin, orderContoller.changeOrderStatus)
 // Coupon Management
 Router.get("/coupon", isAdmin, adminController.getCouponPageAdmin)
 Router.post("/createCoupon", isAdmin, adminController.createCoupon)
+Router.get("/editCoupon",isAdmin,adminController.editCoupon)
+Router.get("/deleteCoupon",isAdmin,adminController.deletecoupon)
+Router.post("/updatecoupon",isAdmin,adminController.updatecoupon)
 
 // Sales Report
 Router.get("/salesReport", isAdmin, adminController.getSalesReportPage)
@@ -81,6 +98,7 @@ Router.get("/salesWeekly", isAdmin, adminController.salesWeekly)
 Router.get("/salesMonthly", isAdmin, adminController.salesMonthly)
 Router.get("/salesYearly", isAdmin, adminController.salesYearly)
 Router.post("/generatePdf", isAdmin, adminController.generatePdf)
+Router.post("/downloadExcel", isAdmin, adminController.downloadExcel)
 Router.get("/monthly-report",adminController.monthlyreport)
 Router.get("/dateWiseFilter", isAdmin, adminController.dateWiseFilter)
 

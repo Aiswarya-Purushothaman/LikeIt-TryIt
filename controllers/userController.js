@@ -7,18 +7,15 @@ const Product = require("../models/productSchema");
 const Category = require("../models/categorySchema");
 const env = require("dotenv");
 const Coupon=require("../models/couponSchema")
+const Banner = require("../models/bannerSchema")
 const { v4: uuidv4 } = require("uuid");
 env.config();
 
 const pageNotFound = async (req, res) => {
-  try {
-    res.render("page-404");
-  } catch (error) {
-    console.log(error.message);
-  }
+    res.render("page-404"); 
 };
 
-// load loginpage
+// load login page
 
 const getLoginPage = async (req, res) => {
   console.log("is login calling");
@@ -30,11 +27,11 @@ const getLoginPage = async (req, res) => {
       res.redirect("/");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
-const userLogin = async (req, res) => {
+const   userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const findUser = await User.findOne({ isAdmin: "0", email: email });
@@ -63,7 +60,7 @@ const userLogin = async (req, res) => {
       res.render("login", { message: "User is not found" });
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
     res.render("login", { message: "Login failed" });
   }
 };
@@ -76,7 +73,7 @@ const getSignupPage = async (req, res) => {
       res.redirect("/");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -127,7 +124,7 @@ const signupUser = async (req, res) => {
       res.render("signup", { message: "The confirm pass is not matching" });
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -145,7 +142,7 @@ const getOtpPage = async (req, res) => {
   try {
     res.render("verify-otp");
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 // Verify otp from email with generated otp and save the user data to db
@@ -180,7 +177,7 @@ const verifyOtp = async (req, res) => {
       }
 
   } catch (error) {
-      console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 }
 
@@ -191,7 +188,7 @@ const securePassword = async (password) => {
     const passwordHash = await bcrypt.hash(password, 10);
     return passwordHash;
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -199,25 +196,32 @@ const securePassword = async (password) => {
 
 const getHomePage = async (req, res) => {
   try {
+    const today = new Date().toISOString();
     const user = req.session.user;
     const userData = await User.findOne({ _id: user });
     console.log(userData, "userdata");
+    const findBanner = await Banner.find({
+      startDate: { $lt: new Date(today) },
+      endDate: { $gt: new Date(today) }
+  });
     const brandData = await Brand.find({ isBlocked: false });
     const productData = await Product.find({ isBlocked: false })
       .sort({ id: -1 })
       .limit(4);
 
-    if (user) {
-      res.render("home", {
-        user: userData,
-        data: brandData,
-        products: productData,
-      });
-    } else {
-      res.render("home", { data: brandData, products: productData });
-    }
+      if (user) {
+        res.render("home", {
+          user: userData,
+          data: brandData,
+          products: productData,
+          banner: findBanner || [] // Ensure banner is always an array
+        });
+      } else {
+        res.render("home", { data: brandData, products: productData, banner: findBanner || []});
+      }
+      
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -230,7 +234,7 @@ const aboutPage = async (req, res) => {
       res.redirect("/");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -241,28 +245,31 @@ const getShopPage = async (req, res) => {
     const count = await Product.find({ isBlocked: false }).count();
     const brands = await Brand.find({ isBlocked: false });
     const categories = await Category.find({ isListed: true });
-    const categoriesok = await Category.find(
+    const categoriesWithIds = await Category.find(
       { isListed: true },
-      { _id: 0, name: 1 }
+      { _id: 1, name: 1 }
     );
-    const categorynames = categoriesok.map((categoryObject) => {
-      return categoryObject.name;
-    });
+
+    // Create an array of category IDs
+    const categoryIds = categoriesWithIds.map(category => category._id.toString());
+
+    // Filter products based on category ID
     const newProductArrayCategoryListed = products.filter((singleProduct) => {
-      return categorynames.includes(singleProduct.category);
+      return categoryIds.includes(singleProduct.category.toString());
     });
-    // console.log(newProductArrayCategoryListed,"newProductArrayCategoryListed");
+
     res.render("shop", {
       user: user,
       product: newProductArrayCategoryListed,
-      category: categories,
+      category: categoriesWithIds, // Passing category names and IDs
       brand: brands,
       count: count,
     });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
+
 
 const getLogoutUser = async (req, res) => {
   try {
@@ -274,7 +281,7 @@ const getLogoutUser = async (req, res) => {
       res.redirect("/login");
     });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -306,9 +313,174 @@ const applyCoupon = async (req, res) => {
           res.json({ gt: gt, offerPrice: parseInt(selectedCoupon.offerPrice) })
       }
   } catch (error) {
-      console.log(error.message);
+      res.redirect("/pageNotFound");
   }
 }
+const searchProducts = async (req, res) => {
+  try {
+      const user = req.session.user
+      let search = req.body.query
+      console.log(search,"search");
+      const brands = await Brand.find({})
+      const categories = await Category.find({ isListed: true })
+      const count = await Product.find({ isBlocked: false }).count();
+
+      const searchResult = await Product.find({
+          $or: [
+              {
+                  productName: { $regex: ".*" + search + ".*", $options: "i" },
+              }
+          ],
+          isBlocked: false,
+      }).lean()
+
+      let itemsPerPage = 6
+      let currentPage = parseInt(req.query.page) || 1
+      let startIndex = (currentPage - 1) * itemsPerPage
+      let endIndex = startIndex + itemsPerPage
+      let totalPages = Math.ceil(searchResult.length / 6)
+      const currentProduct = searchResult.slice(startIndex, endIndex)
+
+
+      res.render("shop",
+          {
+              user: user,
+              product: currentProduct,
+              category: categories,
+              brand: brands,
+              totalPages,
+              currentPage,
+              count:count
+          })
+
+  } catch (error) {
+      res.redirect("/pageNotFound");
+  }
+}
+
+
+
+const filterProduct = async (req, res) => {
+  try {
+      const user = req.session.user;
+      const category = req.query.category;
+      const brand = req.query.brand;
+      const brands = await Brand.find({});
+      const findCategory = category ? await Category.findOne({ _id: category }) : null;
+      const findBrand = brand ? await Brand.findOne({ _id: brand }) : null;
+
+      const query = {
+          isBlocked: false,
+      };
+
+      if (findCategory) {
+          query.category = findCategory._id;
+      }
+
+      if (findBrand) {
+          query.brand = findBrand.brandName;
+      }
+
+      const findProducts = await Product.find(query);
+      const categories = await Category.find({ isListed: true });
+
+      let itemsPerPage = 6;
+      let currentPage = parseInt(req.query.page) || 1;
+      let startIndex = (currentPage - 1) * itemsPerPage;
+      let endIndex = startIndex + itemsPerPage;
+      let totalPages = Math.ceil(findProducts.length / 6);
+      const currentProduct = findProducts.slice(startIndex, endIndex);
+
+      res.render("shop", {
+          user: user,
+          product: currentProduct,
+          category: categories,
+          brand: brands,
+          totalPages,
+          currentPage,
+          selectedCategory: category || null,
+          selectedBrand: brand || null,
+      });
+
+  } catch (error) {
+    console.log(error)
+      res.redirect("/pageNotFound");
+      //res.status(500).send("Internal Server Error");
+  }
+};
+
+
+
+const filterByPrice = async (req, res) => {
+  try {
+      const user = req.session.user
+      const brands = await Brand.find({});
+      const categories = await Category.find({ isListed: true });
+      console.log(req.query);
+      const findProducts = await Product.find({
+          $and: [
+              { salePrice: { $gt: req.query.gt } },
+              { salePrice: { $lt: req.query.lt } },
+              { isBlocked: false }
+          ]
+      })
+
+      let itemsPerPage = 6;
+      let currentPage = parseInt(req.query.page) || 1;
+      let startIndex = (currentPage - 1) * itemsPerPage;
+      let endIndex = startIndex + itemsPerPage;
+      let totalPages = Math.ceil(findProducts.length / 6);
+      const currentProduct = findProducts.slice(startIndex, endIndex);
+
+
+      res.render("shop", {
+          user: user,
+          product: currentProduct,
+          category: categories,
+          brand: brands,
+          totalPages,
+          currentPage,
+      });
+
+
+  } catch (error) {
+      res.redirect("/pageNotFound");
+  }
+}
+const getSortProducts = async (req, res) => {
+  console.log("Herrer" , req.body);
+  try {
+      let option = req.body.option;
+      let itemsPerPage = 6;
+      let currentPage = parseInt(req.body.page) || 1;
+      let startIndex = (currentPage - 1) * itemsPerPage;
+      let endIndex = startIndex + itemsPerPage;
+      let data;
+
+      if (option == "highToLow") {
+          data = await Product.find({ isBlocked: false }).sort({ salePrice: -1 });
+      } else if (option == "lowToHigh") {
+          data = await Product.find({ isBlocked: false }).sort({ salePrice: 1 });
+      } else if (option == "releaseDate") {
+          data = await Product.find({ isBlocked: false }).sort({ createdOn: 1 });
+      }
+
+      res.json({
+          status: true,
+          data: {
+              currentProduct: data,
+              count: data.length,
+              totalPages: Math.ceil(data.length / itemsPerPage),
+              currentPage
+          }
+      });
+
+  } catch (error) {
+      res.redirect("/pageNotFound");
+      res.json({ status: false, error: error.message });
+  }
+};
+
 
 
 
@@ -325,5 +497,9 @@ module.exports = {
   aboutPage,
   getShopPage,
   getLogoutUser,
-  applyCoupon
+  applyCoupon,
+  getSortProducts,
+  filterByPrice,
+  filterProduct,
+  searchProducts
 };

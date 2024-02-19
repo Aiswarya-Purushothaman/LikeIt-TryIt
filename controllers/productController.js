@@ -13,7 +13,7 @@ const getProductAddPage = async (req, res) => {
     const brand = await Brand.find({ isBlocked: false });
     res.render("product-add", { cat: category, brand: brand });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -31,7 +31,7 @@ const addProducts = async (req, res) => {
       const images = [];
       if (req.files && req.files.length > 0) {
         for (let i = 0; i < req.files.length; i++) {
-          const originalImagePath = req.files[i].path;
+        const originalImagePath = req.files[i].path;
           const originalImageMetadata = await sharp(
             originalImagePath
           ).metadata();
@@ -52,13 +52,15 @@ const addProducts = async (req, res) => {
           images.push(req.files[i].filename);
         }
       }
+      const categoryId=await Category.findOne({name:products.category});
+      console.log(categoryId._id,"categoryId hain");
 
       const newProduct = new Product({
         id: Date.now(),
         productName: products.productName,
         description: products.description,
         brand: products.brand,
-        category: products.category,
+        category: categoryId._id,
         regularPrice: products.regularPrice,
         salePrice: products.salePrice,
         createdOn: new Date(),
@@ -75,7 +77,7 @@ const addProducts = async (req, res) => {
       res.json("failed");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/admin/pageerror");
   }
 };
 
@@ -83,7 +85,7 @@ const getEditProduct = async (req, res) => {
   try {
     const id = req.query.id;
     const findProduct = await Product.findOne({ _id: id });
-
+   console.log(findProduct,"find product");
     const category = await Category.find({});
     const findBrand = await Brand.find({});
     res.render("edit-product", {
@@ -92,7 +94,7 @@ const getEditProduct = async (req, res) => {
       brand: findBrand,
     });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -106,7 +108,7 @@ const deleteSingleImage = async (req, res) => {
     const imagePath = path.join(
       "public",
       "uploads",
-      "product-images",
+      "re-image",
       imageNameTOserver
     );
     if (fs.existsSync(imagePath)) {
@@ -118,14 +120,17 @@ const deleteSingleImage = async (req, res) => {
 
     res.send({ status: true });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
 const editProduct = async (req, res) => {
   try {
+    
     const id = req.params.id;
+    const products=await Product.findOne({_id:id})
     const data = req.body;
+    console.log(data,"data>>>>>>>>>");
     const images = [];
     if (req.files && req.files.length > 0) {
       for (let i = 0; i < req.files.length; i++) {
@@ -133,16 +138,20 @@ const editProduct = async (req, res) => {
       }
     }
     console.log(req.files);
+    console.log(images,"images");
+    const categoryId=await Category.findOne({_id:products.category});
+    console.log(categoryId,"categoryId hain");
     if (req.files.length > 0) {
       console.log("Yes image is there");
       const updatedProduct = await Product.findByIdAndUpdate(
         id,
         {
+          $push: { productImage: { $each: images } },
           id: Date.now(),
           productName: data.productName,
           description: data.description,
           brand: data.brand,
-          category: data.category,
+          category:products.category,
           regularPrice: data.regularPrice,
           salePrice: data.salePrice,
           quantity: data.quantity,
@@ -150,7 +159,6 @@ const editProduct = async (req, res) => {
           color: data.color,
           processor: data.processor,
           createdOn: new Date(),
-          productImage: images,
           status:false
         },
         { new: true }
@@ -166,7 +174,7 @@ const editProduct = async (req, res) => {
           productName: data.productName,
           description: data.description,
           brand: data.brand,
-          category: data.category,
+          category: products.category,
           regularPrice: data.regularPrice,
           salePrice: data.salePrice,
           quantity: data.quantity,
@@ -182,7 +190,7 @@ const editProduct = async (req, res) => {
       res.redirect("/admin/products");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -225,7 +233,7 @@ const getAllProducts = async (req, res) => {
       res.render("page-404");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -236,7 +244,7 @@ const getBlockProduct = async (req, res) => {
     console.log("product blocked");
     res.redirect("/admin/products");
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -247,23 +255,24 @@ const getUnblockProduct = async (req, res) => {
     console.log("product unblocked");
     res.redirect("/admin/products");
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
-
 const productDetails = async (req, res) => {
   try {
     const user = req.session.user;
     const userData = await User.findOne({ _id: user });
     const id = req.query.id;
     const product = await Product.findOne({ id: id });
-    const findCategory = await Category.findOne({name : product.category})
-    let totalOffer
-    if(findCategory.categoryOffer || product.productOffer){
-        totalOffer = findCategory.categoryOffer + product.productOffer
+    const findCategory = await Category.findOne({ _id: product.category });
+
+    let totalOffer;
+    if (findCategory.categoryOffer || product.productOffer) {
+      totalOffer = findCategory.categoryOffer + product.productOffer;
     }
 
-    const categories = await Category.find({});
+    const categories = await Category.find({}); // Fetch all categories
+
     console.log(categories, "fullcategories");
     console.log(product, "product");
     let quantity = product.quantity;
@@ -273,11 +282,13 @@ const productDetails = async (req, res) => {
       user: userData,
       product: product,
       quantity: quantity,
-      categories: categories,
-      totalOffer:totalOffer
+      categories: categories, // Pass array of categories
+      totalOffer: totalOffer,
+      singlecat:findCategory
+
     });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -287,10 +298,10 @@ const addProductOffer = async (req, res) => {
       const { productId, percentage } = req.body;
       
       const findProduct = await Product.findOne({ _id: productId });
-      const findCategory = await Category.findOne({ name: findProduct.category });
+      const findCategory = await Category.findOne({ _id: findProduct.category });
 
       // Check if categoryOffer is already set for the category
-      if (findCategory.categoryOffer !== 0) {
+      if (findCategory.categoryOffer > percentage) {
           console.log("This product's category already has a category offer. Product offer not added.");
           return res.json({ status: false, message: "This product's category already has a category offer." });
       }
@@ -300,11 +311,15 @@ const addProductOffer = async (req, res) => {
       findProduct.productOffer = parseInt(percentage);
       await findProduct.save();
 
+      // Set categoryOffer to zero for the category
+      findCategory.categoryOffer = 0;
+      await findCategory.save();
+
       res.json({ status: true });
 
   } catch (error) {
-      console.log(error.message);
-      res.status(500).json({ status: false, message: "Internal Server Error" });
+      res.redirect("/pageerror");
+      // res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 }
 
@@ -322,7 +337,7 @@ const removeProductOffer = async (req, res) => {
       await findProduct.save()
       res.json({status : true})
   } catch (error) {
-      console.log(error.message);
+      res.redirect("/pageerror");
      
   }
 }

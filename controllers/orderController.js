@@ -111,7 +111,7 @@ const getCheckoutPage = async (req, res) => {
       res.redirect("/shop");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -164,7 +164,7 @@ const orderPlaced = async (req, res) => {
     address: desiredAddress,
     payment: payment,
     userId: userId,
-    status: "Pending",
+    status: "Failed",
     createdOn: Date.now(),
   });
  }else{
@@ -219,9 +219,9 @@ const orderPlaced = async (req, res) => {
           };
           findUser.history.push(newHistory);
           await findUser.save();
-
-          orderDone = await newOrder.save();
-
+      
+          orderDone = await   newOrder.save();
+          console.log(orderDone,"orderdone");
           res.json({
             payment: true,
             method: "wallet",
@@ -233,8 +233,8 @@ const orderPlaced = async (req, res) => {
           return;
         } else {
           console.log("wallet amount is lesser than total amount");
-          res.json({ payment: false, method: "wallet", success: false });
-          return;
+          await Order.updateOne({_id :orderDone._id},{$set:{status:"Failed"}})
+          return res.json({ payment: false, method: "wallet", success: false });
         }
       } else if (newOrder.payment == "razorpay") {
         console.log("order placed by razorpay");
@@ -257,9 +257,10 @@ const orderPlaced = async (req, res) => {
       console.log("Address not found");
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
+
 
 const getOrderDetailsPage = async (req, res) => {
   try {
@@ -274,9 +275,17 @@ const getOrderDetailsPage = async (req, res) => {
     const findOrder = await Order.findOne({ _id: orderId });
     const findUser = await User.findOne({ _id: userId });
     console.log(findOrder, "kanikkk");
-    res.render("orderDetails", { orders: findOrder, user: findUser });
+    let totalGrant=0
+    findOrder.product.map((val)=>{
+      console.log(val.price,"priceeeee");
+      totalGrant+=val.price
+
+    })
+    console.log(totalGrant,"TOTALPR");
+
+    res.render("orderDetails", { orders: findOrder, user: findUser, totalGrant:totalGrant });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 const paymentConfirm=async(req,res)=>{
@@ -292,7 +301,7 @@ const paymentConfirm=async(req,res)=>{
 
 
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
     
   }
 }
@@ -313,7 +322,7 @@ const getOrderListPageAdmin = async (req, res) => {
 
     res.render("order-list", { orders: currentOrder, totalPages, currentPage });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -325,14 +334,46 @@ const changeOrderStatus = async (req, res) => {
 
     const orderId = req.query.orderId;
     console.log(orderId);
+    const userId = req.query.userId;
+   
 
-    await Order.updateOne({ _id: orderId }, { status: req.query.status }).then(
-      (data) => console.log(data)
-    );
-
+      await Order.updateOne({ _id: orderId }, { status: req.query.status }).then(
+        (data) => console.log(data)
+      );
+      const findOrder = await Order.findOne({ _id: orderId });
+      console.log(findOrder,"changed order");
+      if (findOrder.status.trim() === "Returned"&&(findOrder.payment === "razorpay"||findOrder.payment === "wallet"||findOrder.payment === "cod")) {
+          console.log("It's a return");
+          const findUser = await User.findOne({ _id:userId});
+          console.log(findUser,"findUser1111111");
+          if (findUser && findUser.wallet !== undefined) {
+            // If findUser is not null and wallet is defined
+            console.log("herrrrrrrrrrrrrrreeee");
+            findUser.wallet += findOrder.totalPrice;
+            await findUser.save();
+        } else {
+            console.log("User not found or wallet is undefined");
+        }
+           // Update the order status to "returned"
+    await Order.updateOne({ _id: orderId }, { status: "Returned"});
+    for (const productData of findOrder.product) {
+      const productId = productData._id
+      const quantity = productData.quantity
+      const product = await Product.findById(productId);
+      if (product) {
+        product.quantity += quantity;
+        // console.log(product,"product");
+        await product.save();
+      } else if (!product) {
+        console.log("nah product");
+      }
+    }
+      
+      }
+     
     res.redirect("/admin/orderList");
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
@@ -340,7 +381,7 @@ const getCartCheckoutPage = async (req, res) => {
   try {
     res.render("checkoutCart");
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -355,12 +396,12 @@ const getOrderDetailsPageAdmin = async (req, res) => {
 
     res.render("order-details-admin", { orders: findOrder, orderId });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageerror");
   }
 };
 
 const changeSingleProductStatus = async (req,res)=>{
-  console.log("caling");
+  console.log("cal>>>>>ing");
   const { orderId,singleProductId,status} = req.body
   const oid = new mongodb.ObjectId(singleProductId);
   const order =  await Order.findOne({_id:orderId})
@@ -386,43 +427,48 @@ const changeSingleProductStatus = async (req,res)=>{
         const result = await Order.updateOne(filter, update, options)
         res.status(200).json({ message: 'Product status updated successfully', result });
       }catch{
+        res.redirect("/pageNotFound");
 
       }
 }
-
 const cancelorder = async (req, res) => {
-  console.log(req.body, "pkpk");
+  console.log("canceled");
   try {
-    console.log("im yes");
     const userId = req.session.user;
     const findUser = await User.findOne({ _id: userId });
-
+    console.log(findUser,"findUser1123456");
     if (!findUser) {
       return res.status(404).json({ message: "User not found" });
     }
-
     const orderId = req.query.orderId;
-    console.log(orderId, "id hain");
-
-    await Order.updateOne({ _id: orderId }, { status: "Canceled" }).then(
-      (data) => console.log(data)
-    );
-
     const findOrder = await Order.findOne({ _id: orderId });
-    console.log(findOrder, "0k bei");
+    console.log(findOrder,"findOrder");
+    if (!findOrder) {
+      console.log("order is not present");
+      return res.status(404).json({ message: "Order not found" });
+    }
+    if (findOrder.status === "Cancelled") {
+      console.log(findOrder.status,"already canceled");
+      return res.status(400).json({ message: "Order is already cancelled" });
+    }
+    // Check if the payment method is "razorpay" or "wallet"
+    if (
+      (findOrder.payment === "razorpay" || findOrder.payment === "wallet") && findOrder.status === "Confirmed") {
+      // Add the paid amount back to the user's wallet
+      console.log('if razorPay , wallet cancel');
+      findUser.wallet += findOrder.totalPrice;
+      console.log(findUser,"user id");
+      await findUser.save();
+    }
+    // Update the order status to "Cancelled"
+    await Order.updateOne({ _id: orderId }, { status: "Canceled" });
     for (const productData of findOrder.product) {
-      console.log(productData, " productData");
-      const productId = productData._id;
-      const quantity = productData.quantity;
-      console.log(productId, "ppppp");
-      console.log(quantity, "qqqqq");
-
+      const productId = productData._id
+      const quantity = productData.quantity
       const product = await Product.findById(productId);
-
-      console.log(product, "=>>>>>>>>>");
-
       if (product) {
         product.quantity += quantity;
+        console.log(product,"product");
         await product.save();
       } else if (!product) {
         console.log("nah product");
@@ -431,9 +477,37 @@ const cancelorder = async (req, res) => {
 
     res.redirect("/userprofile");
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
+    res.status(500).json({ message: "Internal server error" });
   }
 };
+const returnorder= async(req,res)=>{
+  try {
+    const userId = req.session.user;
+    const findUser = await User.findOne({ _id: userId });
+    if (!findUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const orderId = req.query.orderId;
+    const findOrder = await Order.findOne({ _id: orderId });
+    console.log(findOrder,"findOrder");
+    if (!findOrder) {
+      console.log("order is not present");
+      return res.status(404).json({ message: "Order not found" });
+    }
+    if (findOrder.status === "returned") {
+      console.log(findOrder.status,"already returned");
+      return res.status(400).json({ message: "Order is already returned" });
+    }
+    
+    await Order.updateOne({ _id: orderId }, { status: "Return Request" });
+    res.redirect("/userprofile");
+  } catch (error) {
+    res.redirect("/pageNotFound");
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 const generateOrderRazorpay = (orderId, total) => {
   return new Promise((resolve, reject) => {
@@ -486,5 +560,6 @@ module.exports = {
   getOrderDetailsPageAdmin,
   verify,
   changeSingleProductStatus,
-  paymentConfirm
+  paymentConfirm,
+  returnorder
 };

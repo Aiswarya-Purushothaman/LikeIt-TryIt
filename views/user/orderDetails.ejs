@@ -42,8 +42,13 @@
                           <% if (orders.status !== "Canceled") { %>
                             <select id="actionDropdown" class="form-select form-select-sm d-inline-block mb-lg-0 mb-15 mw-100" onchange="handleDropdownChange(this)">
                                 <option value="status">Status</option>
-                                <option value="cancel" href="/cancelOrder">Cancel</option>
+                                <option value="cancel" <% if (orders.status === "Canceled") { %>disabled<% } else if (orders.status === "Delivered") { %>disabled<% } %> >Cancel</option>
+                                <% if (orders.status === "Delivered") { %>
+                                    <option value="returnrequest" href="/returnrequestOrder">Return Request</option>
+                                <% } %>
                             </select>
+                            
+                            
                         <% } else { %>
                             <h4 class="text-danger">Cancelled</h4>
                         <% } %>
@@ -83,11 +88,14 @@
                                     <p class="mb-1">
                                         <%if(locals.orders){%>
                                         Pay method: <%=orders.payment%> <br> Status:
-                                        <%if(orders.status=="Pending"){%> 
-                                            Pending
+                                        <%if(orders.status=="Failed"){%> 
+                                            Failed
                                                 <%}else if(orders.status=="Delivered"){%>
                                                     Delivered
-                                                    <%}else if(orders.status=="Confirmed"){%>
+                                                    <%}else if(orders.status=="Return Request"){%>
+                                                        Return Request
+                                                        <%}
+                                                    else if(orders.status=="Confirmed"){%>
                                                         Confirmed
                                                     <%}else if(orders.status=="Returned"){%>
                                                         Returned
@@ -98,7 +106,15 @@
                                                     
                                                                 <%}%>
                                                                 <br>
-                                                                Total Amount: <%=orders.totalPrice%>
+                                                                Grand Total: <%=totalGrant%>
+                                                                <br>
+                                                                Paid Amount: <%=orders.totalPrice%>
+                                                                <br>
+                                                                <%
+    <!-- // Assuming totalGrant and orders.totalPrice are variables available in your server-side code -->
+    var Discount = totalGrant - orders.totalPrice;
+%>
+                                                                Discount:<%=Discount%>
                                                     <%}%>
 
 
@@ -137,6 +153,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        
                                         <%if(locals.orders){%>
                                             <% let orderId; %>
                                             <% for (let i = 0; i < orders.product.length; i++) { %>
@@ -144,7 +161,7 @@
                                                     <td class="text-center"> 
                                                         <a class="itemside" href="#">
                                                             <div class="left">
-                                                                <img src="/uploads/product-images/<%= orders.product[i].image %>" style="height: 7rem; width: 7rem;" class="img-xs" alt="Item">
+                                                                <img src="/uploads/re-image/<%= orders.product[i].image %>" style="height: 7rem; width: 7rem;" class="img-xs" alt="Item">
                                                             </div>
                                                         </a>
                                                     </td>
@@ -162,12 +179,15 @@
                                                     <td class="text-center"> 
                                                         ₹<%= (parseInt(orders.product[i].price) * parseInt(orders.product[i].quantity)).toLocaleString() %>
                                                     </td>
+                                        
                                                    <td class="text-center"> 
                                                     <% if (orders.product[i].productStatus === "Cancel") { %>
                                                       <i>Cancelled</i>  
-                                                  <% } else if (orders.status === "Confirmed"||orders.status === "Shipped"||orders.status === "Pending") { %>
+                                                  <% } else if (orders.status === "Confirmed"||orders.status === "Shipped") { %>
                                                       <button id="cancelButton" onclick="singleProductStatus('<%= orders.product[i]._id %>','<%= orders._id %>','Cancel') "style="background-color: red; color: #ffffff; border: none; border-radius: 4px;">Cancel</button>
-                                                  <% } %>
+                                                  <% }else if (orders.status === "Failed"||orders.status === "Delivered") { %>
+                                                  <h6>Can't cancel </h6>
+                                                <% } %>
                                                     
                                                   </td>
                                                 </tr>
@@ -248,6 +268,7 @@
     }
   </style>
 <script>
+    alert(x);
     function singleProductStatus(singleProductId,orderId,status){
       console.log(singleProductId,"singleProductId");
       console.log(orderId,"orderid");
@@ -283,9 +304,15 @@
         if(selectedValue == "cancel"){
             console.log("keri");
             window.location.href = `http://localhost:5000/cancelOrder?orderId=${orderId.value}`;
+        }else if (selectedValue == "returnrequest"){
+            console.log("tooo");
+            window.location.href = `http://localhost:5000/returnrequestOrder?orderId=${orderId.value}`;
         }
+
+        
 
 
     }
+
 </script>
 <%- include("../partials/footer") %>

@@ -39,9 +39,16 @@ const adminrouter = require("./router/adminrouter");
 app.use("/", userrouter);
 app.use("/admin", adminrouter);
 
-app.use("*", function (req, res) {
+app.use("/admin/*" , (req,res)=>{
+  res.render('error')
+})
+
+app.use("/*", function (req, res) {
   res.redirect("/pageNotFound");
 });
+
+
+
 
 app.listen(5000, () => {
   console.log("Port has started at 5000");

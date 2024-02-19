@@ -37,7 +37,7 @@ const addMoneyToWallet = async (req, res) => {
             res.json({order : order, razorpay : true})
         })
     } catch (error) {
-        console.log(error.message);
+        res.redirect("/pageNotFound");
     }
 }
 
@@ -53,7 +53,7 @@ const verify_payment = async (req, res)=>{
         )
         res.json({success : true})
     } catch (error) {
-        console.log(error.message);
+        res.redirect("/pageNotFound");
     }
 }
 

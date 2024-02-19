@@ -65,7 +65,7 @@ const getCartPage = async (req, res) => {
       grandTotal,
     });
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -124,7 +124,7 @@ const addToCart = async (req, res) => {
     
    
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
   }
 };
 
@@ -232,7 +232,7 @@ const changeQuantity = async (req, res) => {
       }
     }
   } catch (error) {
-    console.log(error.message);
+    res.redirect("/pageNotFound");
     return res.status(500).json({ status: false, error: "Server error" });
   }
 };
@@ -249,7 +249,7 @@ const deleteProduct = async (req, res) => {
     console.log("item deleted from cart");
     res.redirect("/cart");
   } catch (error) {
-    console.log("BAD error", error);
+    res.redirect("/pageNotFound");
   }
 };
 

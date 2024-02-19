@@ -43,6 +43,7 @@
     background-color: #0056b3;
     border-color: #0056b3;
   }
+  
 </style>
 
 <section class="content-main">
@@ -56,7 +57,8 @@
       <div class="row">
         <div class="col-md-3">
           <form method="post" action="/admin/createCoupon">
-            <body onload="setDefaultStartDate()">
+            <body onload="setDefaultStartDate()"></body>
+            <!-- ,setDefaultendDate() -->
               <div class="mb-4">
                 <label for="coupon-name" class="form-label">Coupon Name</label>
                 <input
@@ -134,38 +136,40 @@
         </div>
         <div class="col-md-7 ml-105">
           <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Created On</th>
-                  <th>Expire On</th>
-                  <th>Offer Price</th>
-                  <th>Minimum Price</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
+              <table class="table table-hover">
+                  <thead>
+                      <tr>
+                          <th>Name</th>
+                          <th>Created On</th>
+                          <th>Expire On</th>
+                          <th>Offer Price</th>
+                          <th>Minimum Price</th>
+                          <th>Status</th>
+                          <th>Edit/Delete</th> <!-- Updated heading for edit and delete column -->
+                      </tr>
+                  </thead>
+      
+                  <tbody> <!-- Moved tbody tag outside of the loop to avoid repetition -->
+                      <% for (let i=0; i < coupons.length; i++) { %>
+                      <tr> <!-- Added a tr tag for each coupon row -->
+                          <td class="text-start"><%= coupons[i].name %></td>
+                          <td class="text-start"><%= new Date(coupons[i].createdOn).toLocaleDateString('en-US') %></td>
+                          <td class="text-start"><%= new Date(coupons[i].expireOn).toLocaleDateString('en-US') %></td>
+                          <td class="text-start"><%= coupons[i].offerPrice %></td>
+                          <td class="text-start"><%= coupons[i].minimumPrice %></td>
+                          <td class="text-start"><%= coupons[i].isList %></td>
+                          <td class="text-start">
+                              <a href="/admin/editCoupon?id=<%= coupons[i]._id %>" class="btn btn-primary btn-sm" >Edit</a>
 
-              <% for (let i=0; i < coupons.length; i++) { %>
-              <tbody>
-                <td class="text-start"><%= coupons[i].name %></td>
-                <td class="text-start">
-                  <%= new Date(coupons[i].createdOn).toLocaleDateString('en-US')
-                  %>
-                </td>
-                <td class="text-start">
-                  <%= new Date(coupons[i].expireOn).toLocaleDateString('en-US')
-                  %>
-                </td>
-
-                <td class="text-start"><%= coupons[i].offerPrice %></td>
-                <td class="text-start"><%= coupons[i].minimumPrice %></td>
-                <td class="text-start"><%= coupons[i].isList %></td>
-              </tbody>
-              <% } %>
-            </table>
+                              <a href="/admin/deleteCoupon?id=<%= coupons[i]._id %>" class="btn btn-danger btn-sm" style="height: 35px;width: 105px;">Delete</a>
+                          </td>
+                      </tr>
+                      <% } %>
+                  </tbody>
+              </table>
           </div>
-        </div>
+      </div>
+      
         <!-- .col// -->
       </div>
       <!-- .row // -->
@@ -186,6 +190,16 @@
     // Set the default value of the "Start Date" input field to today's date
     document.getElementById("startingDate").value = `${year}-${month}-${day}`;
   }
+  function setDefaultendDate() {
+    const today = new Date();
+    const year = today.getFullYear();
+    let month = (today.getMonth() + 1).toString().padStart(2, "0"); // Add leading zero if needed
+    let day = today.getDate().toString().padStart(2, "0"); // Add leading zero if needed
+
+    // Set the default value of the "Start Date" input field to today's date
+    document.getElementById("expiringDate").value = `${year}-${month}-${day}`;
+  }
+
 
   function validateForm() {
     // Reset all error messages

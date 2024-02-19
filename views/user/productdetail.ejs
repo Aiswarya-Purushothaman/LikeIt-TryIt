@@ -7,7 +7,7 @@
           <div class="breadcrumb">
               <a href="index.html" rel="nofollow">Home</a>
               <span></span> Fashion
-              <span></span> Abstract Print Patchwork Dress
+              <span></span>LikeIt Tryit Your Fashion
           </div>
       </div>
   </div>
@@ -23,19 +23,19 @@
                                   <!-- MAIN SLIDES -->
                                   <div class="product-image-slider">
                                       <figure class="border-radius-10">
-                                          <img src="/uploads/product-images/<%=product.productImage[0]%>" alt="product image">
+                                          <img src="/uploads/re-image/<%=product.productImage[0]%>" alt="product image">
                                       </figure>
                                       <figure class="border-radius-10">
-                                        <img src="/uploads/product-images/<%=product.productImage[1]%>" alt="product image">
+                                        <img src="/uploads/re-image/<%=product.productImage[1]%>" alt="product image">
                                     </figure>
                                     <figure class="border-radius-10">
-                                        <img src="/uploads/product-images/<%=product.productImage[2]%>" alt="product image">
+                                        <img src="/uploads/re-image/<%=product.productImage[2]%>" alt="product image">
                                     </figure>
                                     <figure class="border-radius-10">
-                                        <img src="/uploads/product-images/<%=product.productImage[3]%>" alt="product image">
+                                        <img src="/uploads/re-image/<%=product.productImage[3]%>" alt="product image">
                                     </figure>
                                     <figure class="border-radius-10">
-                                        <img src="/uploads/product-images/<%=product.productImage[4]%>" alt="product image">
+                                        <img src="/uploads/re-image/<%=product.productImage[4]%>" alt="product image">
                                     </figure>
                                      
                                   </div>
@@ -43,7 +43,7 @@
                                   <div  class="slider-nav-thumbnails pl-15 pr-15">
                                       <% for (let i = 0; i < product.productImage.length; i++) { %>
                                         <div>
-                                            <img style="object-fit:contain ;" src="/uploads/product-images/<%= product.productImage[i] %>" alt="product image">
+                                            <img style="object-fit:contain ;" src="/uploads/re-image/<%= product.productImage[i] %>" alt="product image">
                                         </div>
                                     <% } %>
                                   </div>
@@ -77,7 +77,7 @@
                                   <div class="clearfix product-price-cover">
                                       <div class="product-price primary-color float-left">
                                           <ins><span class="text-brand"><%=product.salePrice%></span></ins>
-                                          <ins><span class="old-price font-md ml-15"><%=product.regularPricePrice%>.</span></ins>
+                                          <ins><span class="old-price font-md ml-15"><%=product.regularPrice%>.</span></ins>
                                           <span class="save-price  font-md color3 ml-15"> 
                                             <% if (!totalOffer) { %>
                                             No Offers
@@ -116,7 +116,7 @@
                                   </div>
                                   <ul class="product-meta font-xs color-grey mt-50">
                                       <li class="mb-5">SKU: <a href="#">FWM15VKT</a></li>
-                                      <li class="mb-5">Tags: <a href="#" rel="tag"></a>, <a href="#" rel="tag"><%= product.category %></a>, <a href="#" rel="tag"></a> </li>
+                                      <li class="mb-5">Tags: <a href="#" rel="tag"></a> <a href="#" rel="tag"><%= singlecat.name %></a>, <a href="#" rel="tag"></a> </li>
                                       <li>Availability:<span class="in-stock text-success ml-5"><%= quantity %> Items In Stock</span></li>
                                   </ul>
                               </div>

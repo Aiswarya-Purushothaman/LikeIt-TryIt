@@ -1,5 +1,13 @@
 <%- include("../partials/adminHeader") %>
 
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.css">
+
+</head>
+
+</style>
+
+
     <section class="content-main">
         <div class="row">
             <div class="col-9">
@@ -11,7 +19,7 @@
                 <div class="card mb-4">
                     <div class="card-body">
 
-                        <form method="post" action="/admin/addProducts" enctype="multipart/form-data"
+                        <form method="post" action="/admin/addProductsm" enctype="multipart/form-data"
                             onsubmit="return validateForm()">
                             <div class="mb-4">
                                 <label for="product_name" class="form-label">Product Name</label>
@@ -66,7 +74,7 @@
                                 <div class="col-lg-4">
                                     <div class="mb-4">
                                         <label class="form-label">Color</label>
-                                        <input placeholder="$" name="color" type="text" class="form-control border"> 
+                                        <input  name="color" type="text" class="form-control border"> 
                                     </div>
                                     <div id="color-error" class="error-message"></div>
                                 </div>
@@ -97,19 +105,79 @@
                                 <div class="border row">
                                     <div id="addedImagesContainer" class="thumbnails-container"></div>
                                 </div>
-                                <div class="card-body">
+                                <!-- <div class="card-body">
                                     <div class="input-upload">
-                                        <!-- <img src="assets/imgs/theme/upload.svg" alt=""> -->
                                         <input class="form-control border" name="images" id="imageInput" type="file"
                                             multiple>
                                             <div id="images-error" class="error-message"></div>
                                     </div>
-                                    
-                                    
-                                </div>
+                                </div> -->
+                                <div class="row">
+
+
+                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                                                    <img src="assets/imgs/theme/upload.svg" alt="" id="imgView1">
+                                                                    <input class="form-control" type="file" name="images" id="input1"
+                                                                        accept="image/png, image/jpeg, image/jpg"
+                                                                        onchange="viewImage1(event), viewImage(event, 1)">
+                                                                        <div id="images-error" class="error-message"></div>
+                                                                </div>
+                                                                <div class="image-cropper d-flex align-items-center"
+                                                                    style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                                                    <img src="" id="croppedImg1" alt="">
+                                                                    <button type="button" id="saveButton1" class="btn-sm btn-primary">Save</button>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="row">
+                                                                <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                                                    <img src="assets/imgs/theme/upload.svg" alt="" id="imgView2">
+                                                                    <input class="form-control" type="file" name="images" id="input2"
+                                                                        accept="image/png, image/jpeg, image/jpg"
+                                                                        onchange="viewImage2(event),viewImage(event, 2)">
+                                                                </div>
+                                                                <div class="image-cropper d-flex align-items-center"
+                                                                    style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                                                    <img src="" id="croppedImg2" alt="">
+                                                                    <button type="button" id="saveButton2" class="btn-sm btn-primary">Save</button>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="row">
+                                                                <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                                                    <img src="assets/imgs/theme/upload.svg" alt="" id="imgView3">
+                                                                    <input class="form-control" type="file" name="images" id="input3"
+                                                                        accept="image/png, image/jpeg, image/jpg"
+                                                                        onchange="viewImage3(event),viewImage(event, 3)">
+                                                                </div>
+                                                                <div class="image-cropper d-flex align-items-center"
+                                                                    style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                                                    <img src="" id="croppedImg3" alt="">
+                                                                    <button type="button" id="saveButton3" class="btn-sm btn-primary">Save</button>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div class="row">
+                                                                <div class="card-body align-items-center" style="margin-bottom: 20px;">
+                                                                    <img src="assets/imgs/theme/upload.svg" alt="" id="imgView4">
+                                                                    <input class="form-control" type="file" name="images" id="input4"
+                                                                        accept="image/png, image/jpeg, image/jpg"
+                                                                        onchange="viewImage4(event),viewImage(event, 4)">
+                                                                </div>
+                                                                <div class="image-cropper d-flex align-items-center"
+                                                                    style="display:none; width: 300px; height: 200px; margin-bottom: 20px;">
+                                                                    <img src="" id="croppedImg4" alt="">
+                                                                    <button type="button" id="saveButton4" class="btn-sm btn-primary">Save</button>
+                                                                </div>
+                                                            </div>
+                                                            
+                            
+                            
+                            
+                                                        </div>
                             </div>
                             <div>
-                                <button class="btn btn-md rounded font-sm hover-up" type="submit">Publish</button>
+                                <button class="btn btn-md rounded font-sm hover-up"  type="button" onclick="validateAndSubmit()">Publish</button>
                             </div>
                         </form>
                     </div>
@@ -131,12 +199,100 @@
         }
     </style>
 
+<script src="https://cdn.jsdelivr.net/npm/cropperjs/dist/cropper.min.js"></script>
+
     <script>
+        
+        function validateAndSubmit() {
+
+if (validateForm()) {
+    // If validation passes, submit the form
+    document.forms[0].submit(); // Assuming this is the first (and only) form on your page
+}
+}
+
+
+        
+function viewImage1(event) {
+            document.getElementById('imgView1').src = URL.createObjectURL(event.target.files[0])
+        }
+
+        function viewImage2(event) {
+            document.getElementById('imgView2').src = URL.createObjectURL(event.target.files[0])
+        }
+
+        function viewImage3(event) {
+            document.getElementById('imgView3').src = URL.createObjectURL(event.target.files[0])
+        }
+
+        function viewImage4(event) {
+            document.getElementById('imgView4').src = URL.createObjectURL(event.target.files[0])
+        }
+
+
+        function viewImage(event, index) {
+            let input = event.target;
+            let reader = new FileReader();
+
+            reader.onload = function () {
+                let dataURL = reader.result;
+                let image = document.getElementById('imgView' + index);
+                image.src = dataURL;
+
+                // Initialize Cropper.js on the image
+                let cropper = new Cropper(image, {
+                    aspectRatio: 1, // Square aspect ratio
+                    viewMode: 1,
+                    guides: true,
+                    background: false,
+                    autoCropArea: 1,
+                    zoomable: true
+                });
+
+
+                // Show the image cropper container
+                let cropperContainer = document.querySelector('#croppedImg' + index).parentNode;
+                cropperContainer.style.display = 'block';
+
+                // Update the cropped image when the "Save" button is clicked
+                let saveButton = document.querySelector('#saveButton' + index);
+                saveButton.addEventListener('click', async function () {
+                    let croppedCanvas = cropper.getCroppedCanvas();
+                    let croppedImage = document.getElementById("croppedImg" + index);
+                    croppedImage.src = croppedCanvas.toDataURL('image/jpeg', 1.0);
+
+                    // Generate a unique name for the cropped image file based on the current timestamp
+                    let timestamp = new Date().getTime();
+                    let fileName = `cropped-img-${timestamp}-${index}.png`;
+
+                    await croppedCanvas.toBlob(blob => {
+                        let input = document.getElementById('input' + index);
+                        let imgFile = new File([blob], fileName, blob)
+                        const fileList = new DataTransfer();
+                        fileList.items.add(imgFile);
+                        input.files = fileList.files
+                    });
+                    // cropperContainer.style.display = 'none';
+                });
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+
+
+
+
+
+
+
+
+
+
         // Array to store selected images
         const selectedImages = [];
 
         // Function to handle file input change
-        document.getElementById("imageInput").addEventListener("change", handleFileSelect);
+        document.getElementById("input1").addEventListener("change", handleFileSelect);
 
         function handleFileSelect(event) {
             // Target the container for displaying thumbnails
@@ -202,15 +358,17 @@
             const saleprice = document.getElementsByName('salePrice')[0].value;
             const color = document.getElementsByName('color')[0].value;
             const category = document.getElementsByName('category')[0].value;
-            const images = document.getElementById('imageInput')
+            const images = document.getElementById('input1')
             const quantity=document.getElementsByName('quantity')
+
+
             console.log(images,"imag");
-            console.log("description",description);
+            console.log("description",typeof description);
             console.log(brand,"brand");
             console.log(price,"price");
             console.log(color,"color");
             console.log(category,"category");
-            console.log(images.files.length,"imagcdrfvtg");
+            // console.log(images.files.length,"imagcdrfvtg");
             console.log(saleprice,"saleprice");
 
             
@@ -219,89 +377,72 @@
             let isValid = true
       
             if (name.trim() === "") {
-                displayErrorMessage('productName', 'Please enter a product name.');
-                isValid = false;
-            }
+    displayErrorMessage('productName-error', 'Please enter a product name.');
+    isValid = false;
+} else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+    displayErrorMessage('productName-error', 'Product name should contain only alphabetic characters.');
+    isValid = false;
+}
             
-            
-            if (description.trim() === '') {
-                displayErrorMessage('description', 'Please enter a product description.');
-                isValid = false;
-            }
+if (description.trim() === "") {
+    console.log("magesheee adangh");
+    displayErrorMessage('description-error', 'Please enter a product description.');
+    isValid = false;
+} else if (!/^[a-zA-Z\s]+$/.test(description.trim())) {
+    displayErrorMessage('description-error', 'Product description should contain only alphabetic characters.');
+    isValid = false;
+}
 
            
 
             if ( parseInt(quantity) < 0) {
-                displayErrorMessage('quantity', 'Please enter a valid non-negative quantity.');
+                displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
                 isValid = false;
             }
 
 
             if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
-                displayErrorMessage('regularPrice', 'Please enter a valid non-negative price.');
+                displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
                 isValid = false;
             }
 
 
             if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
-                displayErrorMessage('salePrice', 'Please enter a valid non-negative price.');
+                displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
                 isValid = false;
             }
+            if (parseFloat(price) <= parseFloat(saleprice)) {
+    displayErrorMessage('regularPrice-error', 'Regular price must be greater than sale price.');
+    isValid = false;
+}
+
             
             if (color.trim() === "") {
-                displayErrorMessage('color', 'Please enter a color.');
+                displayErrorMessage('color-error', 'Please enter a color.');
                 isValid = false;
             }
 
 
             if (images.files.length === 0) {
-                console.log("working pannale");
-                displayErrorMessage("images",'Please select an image.');
+                // console.log("working pannale");
+                displayErrorMessage("images-error",'Please select an image.');
                 isValid = false;
             }
            
 
-            const imageFile = images.files;
+            
 
-            // console.log(imageFile[0].type,"itsimg");
-
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            const maxSizeMB = 5; // Maximum file size in megabytes
-
-            // Check file type
-            if(images.files.length != 0){
-                if (!allowedTypes.includes(imageFile[0].type)) {
-                console.log();
-                displayErrorMessage ("images",'Invalid file type. Please select a JPEG, PNG, or GIF image.');
-                isValid = false;
-            }
-
-            }
+         console.log(isValid,"isValid");
            
-
-            // Check file size
-            if(images.files.length != 0){
-            if (imageFile[0].size > maxSizeMB * 1024 * 1024) {
-                displayErrorMessage ("images",`File size exceeds ${maxSizeMB} MB. Please choose a smaller image.`); 
-                isValid = false;
-            }
-        }
-
-            // If all checks pass, clear error message
-           
-            if (!isValid) {
-                // If there are validation errors, prevent form submission
-                return false;
-            }
             // displayErrorMessage '';
             return isValid;
         }
-        function displayErrorMessage(field, message) {
-            const errorElement = document.getElementById(`${field}-error`);
-            if (errorElement) {
-                errorElement.innerText = message;
-            }
+        function displayErrorMessage(elementId, message) {
+            var errorElement = document.getElementById(elementId);
+            errorElement.innerText = message;
+            errorElement.style.display = "block";
         }
+
         function clearErrorMessages() {
             const errorElements = document.getElementsByClassName('error-message');
             Array.from(errorElements).forEach(element => {

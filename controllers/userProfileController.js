@@ -28,7 +28,7 @@ const getUserProfile = async (req, res) => {
       order: orderData,
     });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -49,7 +49,7 @@ const editUserDetails = async (req, res) => {
     ).then((data) => console.log(data));
     res.redirect("/userprofile");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -58,7 +58,7 @@ const getAddressAddPage = async (req, res) => {
     const user = req.session.user;
     res.render("add-address", { user: user });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 const postAddress = async (req, res) => {
@@ -116,7 +116,7 @@ const postAddress = async (req, res) => {
 
     res.redirect("/userprofile");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 const getEditAddress = async (req, res) => {
@@ -133,7 +133,7 @@ const getEditAddress = async (req, res) => {
     // console.log(addressData);
     res.render("edit-address", { address: addressData, user: user });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -176,7 +176,7 @@ const postEditAddress = async (req, res) => {
         res.redirect("/userprofile");
       });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -205,7 +205,7 @@ const getDeleteAddress = async (req, res) => {
 
     res.redirect("/userprofile");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
     // Handle the error, e.g., send a 500 response
     res.status(500).send("Internal Server Error");
   }
@@ -215,7 +215,7 @@ const getForgotPassPage = async (req, res) => {
   try {
     res.render("forgot-password");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -232,7 +232,7 @@ const getForgotPassOtpPage = async (req, res) => {
   try {
     res.render("forgotPass-otp");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -277,7 +277,7 @@ const forgotEmailValid = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -285,7 +285,7 @@ const getResetPassPage = async (req, res) => {
   try {
     res.render("reset-password");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -298,7 +298,7 @@ const verifyForgotPassOtp = async (req, res) => {
       res.render("forgotPass-otp", { message: "Otp not matching" });
     }
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -307,7 +307,7 @@ const securePassword = async (password) => {
     const passwordHash = await bcrypt.hash(password, 10);
     return passwordHash;
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -331,7 +331,7 @@ const postNewPassword = async (req, res) => {
       res.render("reset-password", { message: "Password not matching" });
     }
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageNotFound");
   }
 };
 
@@ -397,7 +397,7 @@ const verifyReferalCode = async (req, res) => {
 
             await User.updateOne(
                 { _id: codeOwner._id },
-                { $set: { referalCode: "" } }
+                { $set: { referalCode: referalCode } }
             )
 
             await User.updateOne(
@@ -418,7 +418,7 @@ const verifyReferalCode = async (req, res) => {
         }
 
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageNotFound");
     }
 }
 

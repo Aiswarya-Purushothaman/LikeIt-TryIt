@@ -7,7 +7,7 @@ const getBrandPage = async (req, res)=>{
         console.log(brandData);
         res.render("brands", {data : brandData})
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -27,7 +27,7 @@ const addBrand = async (req, res)=>{
             res.redirect("/admin/brands")
         }
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -38,7 +38,7 @@ const getAllBrands = async (req, res)=>{
         console.log(brandData);
         res.render("brands", {data : brandData})
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -50,7 +50,7 @@ const blockBrand = async (req, res)=>{
         console.log("brand blocked");
         res.redirect("/admin/brands")
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -63,7 +63,7 @@ const unBlockBrand = async (req, res)=>{
         console.log("brand unblocked");
         res.redirect("/admin/brands")
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -76,7 +76,7 @@ const deletebrand=async(req,res)=>{
     res.redirect("/admin/brands")
     
   } catch (error) {
-    console.log(error.message)
+     res.redirect("/pageerror");
   }
 }
 

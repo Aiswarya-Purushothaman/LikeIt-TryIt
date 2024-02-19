@@ -3,9 +3,17 @@ const bcrypt = require("bcrypt");
 const Order = require("../models/orderSchema");
 const Coupon = require("../models/couponSchema.js")
 const PDFDocument = require("pdfkit");
+const ExcelJS = require("exceljs")
 const Category = require("../models/categorySchema");
 const Product = require("../models/productSchema");
 const moment= require("moment")
+const mongoose = require("mongoose");
+
+
+const pageNotFound1 = async (req, res) => {
+  res.render("error"); 
+};
+
 
 const getDashboard = async (req, res) => {
   if (req.session.admin) {
@@ -46,10 +54,10 @@ const getDashboard = async (req, res) => {
         order: order,
       });
     } catch (error) {
-      console.log(error.message);
+       res.redirect("/pageerror");;
     }
   } else {
-    res.redirect("admin-login");
+    res.redirect("/admin/login");
   }
 };
 
@@ -90,7 +98,7 @@ const getLoginPage = async (req, res) => {
         
       res.render("admin-login");
     } catch (error) {
-      console.log(error.message);
+       res.redirect("/pageerror");;
     }
   }
 };
@@ -119,7 +127,7 @@ const verifyLogin = async (req, res) => {
       console.log("He's not an admin");
     }
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 
@@ -128,7 +136,7 @@ const getLogout = async (req, res) => {
     req.session.admin = null;
     res.redirect("/admin/login");
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 const getSalesReportPage = async (req, res) => {
@@ -148,7 +156,7 @@ const getSalesReportPage = async (req, res) => {
       res.redirect(`/admin/salesMonthly`);
     }
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 
@@ -201,7 +209,7 @@ const salesToday = async (req, res) => {
       salesToday: true,
     });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 
@@ -251,7 +259,7 @@ const salesWeekly = async (req, res) => {
       salesWeekly: true,
     });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 
@@ -307,7 +315,7 @@ const salesMonthly = async (req, res) => {
       salesMonthly: true,
     });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 
@@ -343,7 +351,7 @@ const salesYearly = async (req, res) => {
       salesYearly: true,
     });
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
 
@@ -396,9 +404,48 @@ const generatePdf = async (req, res) => {
 
     doc.end();
   } catch (error) {
-    console.log(error.message);
+     res.redirect("/pageerror");;
   }
 };
+const downloadExcel = async (req, res) => {
+  try {
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sales Report');
+
+      worksheet.columns = [
+          { header: 'Order ID', key: 'orderId', width: 50 },
+          { header: 'Customer', key: 'customer', width: 30 },
+          { header: 'Date', key: 'date', width: 30 },
+          { header: 'Total', key: 'totalAmount', width: 15 },
+          { header: 'Payment', key: 'payment', width: 15 },
+      ];
+
+      const orders = req.body;
+
+      orders.forEach(order => {
+          worksheet.addRow({
+              orderId: order.orderId,
+              customer: order.name,
+              date: order.date,
+              totalAmount: order.totalAmount,
+              payment: order.payment,
+              products: order.products,
+          });
+      });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename=salesReport.xlsx`);
+
+      await workbook.xlsx.write(res);
+      res.end();
+
+  } catch (error) {
+       res.redirect("/pageerror");;
+  }
+}
+
+
 
 
 const getCouponPageAdmin = async (req, res) => {
@@ -406,7 +453,7 @@ const getCouponPageAdmin = async (req, res) => {
         const findCoupons = await Coupon.find({})
         res.render("coupon", { coupons: findCoupons })
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -437,7 +484,7 @@ const createCoupon = async (req, res) => {
         console.log(data);
 
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
 
@@ -445,7 +492,9 @@ const monthlyreport=async(req,res)=>{
     try {
         console.log("Function calleddd")
       const start = moment().subtract(30, 'days').startOf('day'); // Data for the last 30 days
+      console.log("startdate",start)
       const end = moment().endOf('day');
+      console.log(end)
       const orderSuccessDetails = await Order.find({
         createdOn: { $gte: start, $lte: end },
         status: 'Delivered' 
@@ -498,7 +547,7 @@ const monthlyreport=async(req,res)=>{
       console.log("<=====>hi",monthlyData);
       return res.json(monthlyData);
     } catch (error) {
-      console.error(error);
+      res.redirect("/pageerror");
       return res.status(500).json({ message: 'An error occurred while generating the monthly report.' });
     }
 };
@@ -532,9 +581,88 @@ const dateWiseFilter = async (req, res)=>{
        
 
     } catch (error) {
-        console.log(error.message);
+         res.redirect("/pageerror");;
     }
 }
+const editCoupon=async(req,res)=>{
+  console.log("coupon wrking");
+  try {
+    console.log(req.query,"======>");
+    const id = req.query.id;
+    console.log(id,"iddddddd");
+    
+    const findCoupon = await Coupon.findOne({ _id: id });
+console.log(findCoupon,"findCoupon");
+    res.render("edit-coupon",{
+      findCoupon:findCoupon
+    })
+  } catch (error) {
+     res.redirect("/pageerror");;
+  }
+
+}
+const deletecoupon=async(req,res)=>{
+  console.log("deleteworking");
+  try {
+    const id =req.query.id
+    console.log(id,"idddd");
+   var pink= await Coupon.deleteOne({_id : id})
+   
+    res.redirect("/admin/coupon")
+    
+  } catch (error) {
+     res.redirect("/pageerror");
+  }
+
+}
+const updatecoupon = async (req, res) => {
+  console.log("update working");
+  try {
+    const couponId = req.body.couponId; // Retrieve couponId from request body
+    console.log(req.body,"req  body");   
+
+    const oid = new mongoose.Types.ObjectId(couponId); // Using mongoose.Types.ObjectId
+    console.log(oid, "oid");
+
+    // Attempt to find the coupon
+    const selectedCoupon = await Coupon.findOne({ _id: oid });
+     console.log(selectedCoupon,"oko");
+    if (selectedCoupon) {
+      console.log(selectedCoupon, "coupon found");
+      const startDate = new Date(req.body.startDate);
+      const endDate = new Date(req.body.endDate);
+      console.log(req.body.minimumPrice,"mininprice");
+    
+      // Update the coupon
+      const updatedCoupon = await Coupon.updateOne(
+        { _id: oid },
+        {
+          $set: {
+              name: req.body.couponName,
+              createdOn: startDate,
+              expireOn: endDate,
+              offerPrice: parseInt(req.body.offerPrice),
+              minimumPrice: parseInt(req.body.minimumPrice)
+          }
+      },
+      { new: true } // Return the updated document
+      );
+
+      if (updatedCoupon !== null) { // Check if the updatedCoupon is not null
+        console.log(updatedCoupon, "coupon updated successfully");
+        res.send("Coupon updated successfully");
+      } else {
+        console.log("Coupon update failed");
+        res.status(500).send("Coupon update failed");
+      }
+    } 
+  } catch (error) {
+    res.redirect("/pageerror");
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
 
 
 
@@ -553,5 +681,11 @@ module.exports = {
   createCoupon,
   getCouponPageAdmin,
   monthlyreport,
-  dateWiseFilter
+  dateWiseFilter,
+  downloadExcel,
+  editCoupon,
+  deletecoupon,
+  updatecoupon,pageNotFound1
+  
+
 };

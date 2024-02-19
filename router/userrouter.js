@@ -9,7 +9,6 @@ const walletController=require('../controllers/walletController')
 const { isLogged } = require("../Authentication/auth") 
 
 
-
 Router.get("/pageNotFound", userController.pageNotFound)
 
 Router.get("/login", userController.getLoginPage)
@@ -23,6 +22,11 @@ Router.get("/", userController.getHomePage)
 
 Router.get("/about",userController.aboutPage)
 Router.get("/shop",userController.getShopPage)
+Router.post("/search", userController.searchProducts)
+Router.get("/filter", userController.filterProduct)
+Router.get("/filterPrice", userController.filterByPrice)
+Router.post("/sortProducts", userController.getSortProducts)
+
 
 Router.get("/logout", isLogged, userController.getLogoutUser)
 Router.post("/applyCoupon", isLogged, userController.applyCoupon)
@@ -58,6 +62,8 @@ Router.get("/checkout", isLogged,orderContoller.getCheckoutPage)
 Router.post("/orderPlaced", isLogged,orderContoller.orderPlaced)
 Router.get("/orderDetails", isLogged,orderContoller.getOrderDetailsPage)
 Router.get("/cancelOrder",isLogged,orderContoller.cancelorder)
+Router.get("/returnrequestOrder",isLogged,orderContoller.returnorder)
+
 Router.post("/verifyPayment", isLogged, orderContoller.verify)
 Router.post("/singleProductId",isLogged,orderContoller.changeSingleProductStatus)
 Router.post('/paymentConfirm',isLogged,orderContoller.paymentConfirm)
