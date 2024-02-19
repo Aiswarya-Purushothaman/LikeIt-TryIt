@@ -1,7 +1,10 @@
 const mongoose=require("mongoose");
 const category = require('../models/categorySchema')
-const connectDB=mongoose.connect("mongodb://127.0.0.1:27017/Lapitout")
+const dotenv = require('dotenv')
+dotenv.config()
+const connectDB=mongoose.connect(process.env.MONGO_URL)
 connectDB.then(()=>{
+  console.log("db connected");
   category.createIndexes();
 })
 .catch((err)=>{
