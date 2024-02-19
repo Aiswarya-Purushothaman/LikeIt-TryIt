@@ -1,7 +1,7 @@
 const { application } = require("express");
 const nodemailer = require("nodemailer");
 const User = require("../models/userSchema");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const Brand = require("../models/brandschema");
 const Product = require("../models/productSchema");
 const Category = require("../models/categorySchema");

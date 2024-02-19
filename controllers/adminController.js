@@ -1,5 +1,5 @@
 const User = require("../models/userSchema");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const Order = require("../models/orderSchema");
 const Coupon = require("../models/couponSchema.js")
 const PDFDocument = require("pdfkit");
